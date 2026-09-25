@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PropertyPulse.Api/PropertyPulse.Api.csproj" />
+    <Project Path="src/PropertyPulse.App/PropertyPulse.App.csproj" />
+    <Project Path="src/PropertyPulse.Domain/PropertyPulse.Domain.csproj" />
+    <Project Path="src/PropertyPulse.Infrastructure/PropertyPulse.Infrastructure.csproj" />
+    <Project Path="src/PropertyPulse.Shared/PropertyPulse.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PropertyPulse.Api.Tests/PropertyPulse.Api.Tests.csproj" />
+    <Project Path="tests/PropertyPulse.App.Tests/PropertyPulse.App.Tests.csproj" />
+  </Folder>
+</Solution>

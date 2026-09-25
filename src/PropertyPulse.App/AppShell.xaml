@@ -3,12 +3,30 @@
     x:Class="PropertyPulse.App.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:PropertyPulse.App"
-    Title="PropertyPulse.App">
+    xmlns:views="clr-namespace:PropertyPulse.App.Views"
+    Title="PropertyPulse">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <ShellContent
+            Title="Properties"
+            ContentTemplate="{DataTemplate views:PropertiesPage}"
+            Route="properties" />
+        <ShellContent
+            Title="Leads"
+            ContentTemplate="{DataTemplate views:LeadsPage}"
+            Route="leads" />
+        <ShellContent
+            Title="Visits"
+            ContentTemplate="{DataTemplate views:VisitsPage}"
+            Route="visits" />
+        <ShellContent
+            Title="Dashboard"
+            ContentTemplate="{DataTemplate views:DashboardPage}"
+            Route="dashboard" />
+        <ShellContent
+            Title="Settings"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            Route="settings" />
+    </TabBar>
 
 </Shell>

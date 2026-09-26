@@ -1,41 +1,78 @@
-var builder = WebApplication.CreateBuilder(args);
+using FluentValidation;
+using Microsoft.AspNetCore.Identity;
+using PropertyPulse.Api.ExceptionHandling;
+using PropertyPulse.Api.Extensions;
+using PropertyPulse.Api.Filters;
+using PropertyPulse.Api.Seeding;
+using PropertyPulse.Api.Services;
+using PropertyPulse.Api.Validators;
+using PropertyPulse.Domain.Entities;
+using PropertyPulse.Infrastructure;
+using Serilog;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.MapOpenApi();
+    var builder = WebApplication.CreateBuilder(args);
+
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services));
+
+    var connectionString = builder.Configuration.GetConnectionString("Default")
+        ?? throw new InvalidOperationException("ConnectionStrings:Default is not configured.");
+
+    builder.Services.AddControllers(options => options.Filters.Add<ValidationFilter>());
+    builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+    builder.Services.AddProblemDetails();
+    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    builder.Services.AddSwagger();
+
+    builder.Services.AddInfrastructure(connectionString);
+    builder.Services.AddJwtAuthentication();
+
+    builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+    builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+    builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<IUserService, UserService>();
+
+    if (builder.Environment.IsDevelopment())
+    {
+        builder.Services.AddScoped<DevelopmentDataSeeder>();
+    }
+
+    var app = builder.Build();
+
+    if (app.Environment.IsDevelopment())
+    {
+        await app.InitializeDevelopmentDatabaseAsync();
+    }
+
+    app.UseSerilogRequestLogging();
+    app.UseExceptionHandler();
+    app.UseStatusCodePages();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.Run();
+    return 0;
 }
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
+catch (Exception ex)
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
+    Log.Fatal(ex, "API terminated unexpectedly");
+    return 1;
+}
+finally
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    Log.CloseAndFlush();
 }

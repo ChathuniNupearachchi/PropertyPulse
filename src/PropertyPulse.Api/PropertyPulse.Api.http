@@ -1,6 +1,0 @@
-@PropertyPulse.Api_HostAddress = http://localhost:5097
-
-GET {{PropertyPulse.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

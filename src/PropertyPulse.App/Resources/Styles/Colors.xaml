@@ -23,5 +23,6 @@
     <Color x:Key="Success">#2E7D32</Color>
     <Color x:Key="Warning">#B26A00</Color>
     <Color x:Key="Danger">#C62828</Color>
+    <Color x:Key="DangerLight">#EF9A9A</Color>
 
 </ResourceDictionary>

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
@@ -70,6 +70,20 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<!-- The Appearing behaviors on the pages copy their BindingContext from the page through a binding with an explicit
+		     Source, because behaviors do not receive the page's BindingContext here. XamlC never compiles such a binding. -->
+		<NoWarn>$(NoWarn);XC0025</NoWarn>
+	</PropertyGroup>
+
+	<!-- The XAML source generator cannot see the commands that CommunityToolkit.Mvvm generates from [RelayCommand],
+	     so pages that bind to them are compiled with XamlC to keep their bindings compiled. -->
+	<ItemGroup>
+		<MauiXaml Update="Views\LoginPage.xaml" Inflator="XamlC" />
+		<MauiXaml Update="Views\StartupPage.xaml" Inflator="XamlC" />
+		<MauiXaml Update="Views\SettingsPage.xaml" Inflator="XamlC" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -4,7 +4,17 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:PropertyPulse.App.Views"
+    xmlns:vm="clr-namespace:PropertyPulse.App.ViewModels"
+    x:DataType="vm:ShellViewModel"
+    FlyoutBehavior="Disabled"
     Title="PropertyPulse">
+
+    <ShellContent
+        ContentTemplate="{DataTemplate views:StartupPage}"
+        Route="startup" />
+    <ShellContent
+        ContentTemplate="{DataTemplate views:LoginPage}"
+        Route="login" />
 
     <TabBar>
         <ShellContent
@@ -22,6 +32,7 @@
         <ShellContent
             Title="Dashboard"
             ContentTemplate="{DataTemplate views:DashboardPage}"
+            IsVisible="{Binding IsManager}"
             Route="dashboard" />
         <ShellContent
             Title="Settings"

@@ -18,6 +18,15 @@
 
   <ItemGroup>
     <Compile Include="..\..\src\PropertyPulse.App\ViewModels\**\*.cs" LinkBase="ViewModels" />
+    <Compile Include="..\..\src\PropertyPulse.App\Services\Abstractions\**\*.cs" LinkBase="Services\Abstractions" />
+    <Compile Include="..\..\src\PropertyPulse.App\Services\SessionService.cs" LinkBase="Services" />
+    <Compile Include="..\..\src\PropertyPulse.App\Services\ProtectedFileStore.cs" LinkBase="Services" />
+    <Compile Include="..\..\src\PropertyPulse.App\Services\ApiClient.cs" LinkBase="Services" />
+    <Compile Include="..\..\src\PropertyPulse.App\Services\AuthService.cs" LinkBase="Services" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PropertyPulse.Shared\PropertyPulse.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

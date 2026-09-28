@@ -43,7 +43,6 @@ public class BaseViewModelTests
 	[InlineData(typeof(LeadsViewModel), "Leads")]
 	[InlineData(typeof(VisitsViewModel), "Visits")]
 	[InlineData(typeof(DashboardViewModel), "Dashboard")]
-	[InlineData(typeof(SettingsViewModel), "Settings")]
 	public void TabViewModel_SetsTitle(Type viewModelType, string expectedTitle)
 	{
 		var viewModel = (BaseViewModel)Activator.CreateInstance(viewModelType)!;

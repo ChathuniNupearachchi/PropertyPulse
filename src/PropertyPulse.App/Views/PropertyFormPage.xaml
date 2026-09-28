@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="PropertyPulse.App.Views.PropertyFormPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:PropertyPulse.App.ViewModels"
+    xmlns:converters="clr-namespace:PropertyPulse.App.Converters"
+    x:Name="Page"
+    x:DataType="vm:PropertyEditViewModel"
+    Title="{Binding Title}">
+
+    <ContentPage.Resources>
+        <toolkit:IsStringNotNullOrEmptyConverter x:Key="IsNotEmpty" />
+        <converters:PhotoItemToImageSourceConverter x:Key="PhotoImage" />
+    </ContentPage.Resources>
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding BindingContext, Source={x:Reference Page}, x:DataType={x:Null}}"
+            Command="{Binding AppearingCommand}"
+            EventName="Appearing" />
+    </ContentPage.Behaviors>
+
+    <ScrollView>
+        <VerticalStackLayout Style="{StaticResource FormLayout}">
+
+            <Entry Placeholder="Title" Text="{Binding PropertyTitle}" />
+            <Label IsVisible="{Binding TitleError, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding TitleError}" />
+
+            <Editor AutoSize="TextChanges" Placeholder="Description" Text="{Binding Description}" />
+            <Label IsVisible="{Binding DescriptionError, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding DescriptionError}" />
+
+            <Picker ItemsSource="{Binding PropertyTypeOptions}" SelectedItem="{Binding SelectedType}" Title="Property type" />
+            <Picker ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}" Title="Status" />
+
+            <Entry Keyboard="Numeric" Placeholder="Price (LKR)" Text="{Binding PriceText}" />
+            <Label IsVisible="{Binding PriceError, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding PriceError}" />
+
+            <Entry Placeholder="Address" Text="{Binding Address}" />
+            <Label IsVisible="{Binding AddressError, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding AddressError}" />
+
+            <Entry Placeholder="City" Text="{Binding City}" />
+            <Label IsVisible="{Binding CityError, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding CityError}" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto">
+                <VerticalStackLayout Grid.Column="0" Spacing="4">
+                    <Entry Keyboard="Numeric" Placeholder="Bedrooms" Text="{Binding BedroomsText}" />
+                    <Label IsVisible="{Binding BedroomsError, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding BedroomsError}" />
+                </VerticalStackLayout>
+                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                    <Entry Keyboard="Numeric" Placeholder="Bathrooms" Text="{Binding BathroomsText}" />
+                    <Label IsVisible="{Binding BathroomsError, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding BathroomsError}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto">
+                <VerticalStackLayout Grid.Column="0" Spacing="4">
+                    <Entry Keyboard="Numeric" Placeholder="Floor area (sq ft)" Text="{Binding FloorAreaText}" />
+                    <Label IsVisible="{Binding FloorAreaError, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding FloorAreaError}" />
+                </VerticalStackLayout>
+                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                    <Entry Keyboard="Numeric" Placeholder="Land size (perches)" Text="{Binding LandSizeText}" />
+                    <Label IsVisible="{Binding LandSizeError, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding LandSizeError}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <Label Style="{StaticResource CaptionLabel}" Text="Location" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto">
+                <Entry Grid.Column="0" Keyboard="Numeric" Placeholder="Latitude" Text="{Binding LatitudeText}" />
+                <Entry Grid.Column="1" Keyboard="Numeric" Placeholder="Longitude" Text="{Binding LongitudeText}" />
+            </Grid>
+            <Button Command="{Binding UseCurrentLocationCommand}" IsVisible="{Binding IsLocationAvailable}" Text="Use current location" />
+            <Label IsVisible="{Binding LocationError, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding LocationError}" />
+
+            <Label Style="{StaticResource CaptionLabel}" Text="{Binding Photos.Count, StringFormat='Photos ({0}/10)'}" />
+            <CollectionView HeightRequest="110" ItemsSource="{Binding Photos}" ItemsLayout="HorizontalList">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:PhotoItem">
+                        <Grid Margin="0,0,8,0" WidthRequest="100">
+                            <Image
+                                Aspect="AspectFill"
+                                HeightRequest="100"
+                                Source="{Binding ., Converter={StaticResource PhotoImage}}"
+                                WidthRequest="100" />
+                            <Button
+                                BackgroundColor="{StaticResource Danger}"
+                                Command="{Binding Path=BindingContext.RemovePhotoCommand, Source={x:Reference Page}}"
+                                CommandParameter="{Binding .}"
+                                HeightRequest="28"
+                                HorizontalOptions="End"
+                                Text="x"
+                                TextColor="White"
+                                VerticalOptions="Start"
+                                WidthRequest="28" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <Label IsVisible="{Binding PhotosError, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding PhotosError}" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto">
+                <Button Grid.Column="0" Command="{Binding CapturePhotoCommand}" IsVisible="{Binding IsCaptureSupported}" Text="Take photo" />
+                <Button Grid.Column="1" Command="{Binding AddPhotosCommand}" Text="Choose photos" />
+            </Grid>
+
+            <Label IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotEmpty}}" Style="{StaticResource ErrorLabel}" Text="{Binding ErrorMessage}" />
+
+            <Button Command="{Binding SaveCommand}" Text="Save" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

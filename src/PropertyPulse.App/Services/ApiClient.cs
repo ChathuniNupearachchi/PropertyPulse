@@ -19,6 +19,39 @@ public class ApiClient(HttpClient httpClient, IApiSettings apiSettings, ISession
 		CancellationToken cancellationToken = default) =>
 		SendAsync<TResponse>(HttpMethod.Post, path, JsonContent.Create(body, options: JsonOptions), authenticated, cancellationToken);
 
+	public Task<ApiResult<TResponse>> PutAsync<TRequest, TResponse>(
+		string path,
+		TRequest body,
+		CancellationToken cancellationToken = default) =>
+		SendAsync<TResponse>(HttpMethod.Put, path, JsonContent.Create(body, options: JsonOptions), authenticated: true, cancellationToken);
+
+	public Task<ApiResult<Unit>> DeleteAsync(string path, CancellationToken cancellationToken = default) =>
+		SendAsync<Unit>(HttpMethod.Delete, path, content: null, authenticated: true, cancellationToken);
+
+	public Task<ApiResult<TResponse>> SendMultipartAsync<TResponse>(
+		HttpMethod method,
+		string path,
+		IReadOnlyDictionary<string, string> fields,
+		IReadOnlyCollection<PendingPhoto> photos,
+		CancellationToken cancellationToken = default)
+	{
+		var content = new MultipartFormDataContent();
+
+		foreach (var (name, value) in fields)
+		{
+			content.Add(new StringContent(value), name);
+		}
+
+		foreach (var photo in photos)
+		{
+			var photoContent = new StreamContent(photo.Content);
+			photoContent.Headers.ContentType = new MediaTypeHeaderValue(photo.ContentType);
+			content.Add(photoContent, "photos", photo.FileName);
+		}
+
+		return SendAsync<TResponse>(method, path, content, authenticated: true, cancellationToken);
+	}
+
 	private async Task<ApiResult<T>> SendAsync<T>(
 		HttpMethod method,
 		string path,
@@ -87,6 +120,12 @@ public class ApiClient(HttpClient httpClient, IApiSettings apiSettings, ISession
 
 	private static async Task<ApiResult<T>> ReadValueAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
 	{
+		// A successful delete has no body; Unit stands in for it so callers still get a uniform ApiResult<T>.
+		if (typeof(T) == typeof(Unit))
+		{
+			return (ApiResult<T>)(object)ApiResult<Unit>.Success(Unit.Value);
+		}
+
 		try
 		{
 			var value = await response.Content.ReadFromJsonAsync<T>(JsonOptions, cancellationToken);

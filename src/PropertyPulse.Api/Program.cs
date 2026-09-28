@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.FileProviders;
 using PropertyPulse.Api.ExceptionHandling;
 using PropertyPulse.Api.Extensions;
 using PropertyPulse.Api.Filters;
@@ -22,6 +23,8 @@ try
 
     var connectionString = builder.Configuration.GetConnectionString("Default")
         ?? throw new InvalidOperationException("ConnectionStrings:Default is not configured.");
+    var imageStorageRootPath = builder.Configuration["ImageStorage:RootPath"]
+        ?? throw new InvalidOperationException("ImageStorage:RootPath is not configured.");
 
     builder.Services.AddControllers(options => options.Filters.Add<ValidationFilter>());
     builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
@@ -29,7 +32,7 @@ try
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddSwagger();
 
-    builder.Services.AddInfrastructure(connectionString);
+    builder.Services.AddInfrastructure(connectionString, builder.Configuration);
     builder.Services.AddJwtAuthentication();
 
     builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -58,6 +61,16 @@ try
         app.UseSwagger();
         app.UseSwaggerUI();
     }
+
+    Directory.CreateDirectory(imageStorageRootPath);
+
+    // Served without authentication: the URLs are opaque (GUID file names) and are only ever handed out
+    // through the property endpoints, which already require a signed-in caller.
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(imageStorageRootPath),
+        RequestPath = "/images/properties"
+    });
 
     app.UseAuthentication();
     app.UseAuthorization();

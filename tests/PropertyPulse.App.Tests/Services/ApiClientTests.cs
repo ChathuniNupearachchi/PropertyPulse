@@ -183,6 +183,81 @@ public class ApiClientTests
 		Assert.Empty(handler.Requests);
 	}
 
+	[Fact]
+	public async Task PutAsync_AttachesBearerTokenAndSendsTheBody()
+	{
+		var handler = FakeHttpMessageHandler.Returning(HttpStatusCode.OK, "{}");
+
+		await CreateClient(handler).PutAsync<LoginRequest, UserDto>("api/auth/login", new LoginRequest("a@b.com", "secret"));
+
+		var request = handler.Requests.Single();
+		Assert.Equal("Bearer test-token", request.Authorization);
+		Assert.Contains("\"email\":\"a@b.com\"", request.Body);
+	}
+
+	[Fact]
+	public async Task PutAsync_WhenUnauthorized_EndsTheSession()
+	{
+		var handler = FakeHttpMessageHandler.Returning(HttpStatusCode.Unauthorized);
+
+		var result = await CreateClient(handler).PutAsync<LoginRequest, UserDto>("api/thing", new LoginRequest("a@b.com", "secret"));
+
+		Assert.Equal(ApiError.Unauthorized, result.Error);
+		_sessionService.Verify(s => s.EndAsync(SessionEndReason.Expired), Times.Once);
+	}
+
+	[Fact]
+	public async Task DeleteAsync_AttachesBearerTokenAndSucceedsWithNoResponseBody()
+	{
+		var handler = FakeHttpMessageHandler.Returning(HttpStatusCode.NoContent);
+
+		var result = await CreateClient(handler).DeleteAsync("api/properties/" + Guid.NewGuid());
+
+		Assert.True(result.IsSuccess);
+		Assert.Equal("Bearer test-token", handler.Requests.Single().Authorization);
+	}
+
+	[Fact]
+	public async Task DeleteAsync_WhenUnauthorized_EndsTheSession()
+	{
+		var handler = FakeHttpMessageHandler.Returning(HttpStatusCode.Unauthorized);
+
+		var result = await CreateClient(handler).DeleteAsync("api/properties/" + Guid.NewGuid());
+
+		Assert.Equal(ApiError.Unauthorized, result.Error);
+		_sessionService.Verify(s => s.EndAsync(SessionEndReason.Expired), Times.Once);
+	}
+
+	[Fact]
+	public async Task SendMultipartAsync_SendsFieldsAndFilesWithTheBearerToken()
+	{
+		var handler = FakeHttpMessageHandler.Returning(HttpStatusCode.OK, "{}");
+		var fields = new Dictionary<string, string> { ["Title"] = "Test House", ["PriceLkr"] = "25000000" };
+		var photos = new[] { new PendingPhoto(new MemoryStream("photo-bytes"u8.ToArray()), "photo.jpg", "image/jpeg") };
+
+		await CreateClient(handler).SendMultipartAsync<UserDto>(HttpMethod.Post, "api/properties", fields, photos);
+
+		var request = handler.Requests.Single();
+		Assert.Equal("Bearer test-token", request.Authorization);
+		Assert.Contains("name=Title", request.Body);
+		Assert.Contains("Test House", request.Body);
+		Assert.Contains("name=PriceLkr", request.Body);
+		Assert.Contains("filename=photo.jpg", request.Body);
+		Assert.Contains("photo-bytes", request.Body);
+	}
+
+	[Fact]
+	public async Task SendMultipartAsync_WhenUnauthorized_EndsTheSession()
+	{
+		var handler = FakeHttpMessageHandler.Returning(HttpStatusCode.Unauthorized);
+
+		var result = await CreateClient(handler).SendMultipartAsync<UserDto>(
+			HttpMethod.Post, "api/properties", new Dictionary<string, string>(), []);
+
+		Assert.Equal(ApiError.Unauthorized, result.Error);
+		_sessionService.Verify(s => s.EndAsync(SessionEndReason.Expired), Times.Once);
+	}
+
 	private ApiClient CreateClient(FakeHttpMessageHandler handler) =>
 		new(new HttpClient(handler), _apiSettings.Object, _sessionService.Object);
 }

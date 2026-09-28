@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="PropertyPulse.App.Views.PropertyDetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:vm="clr-namespace:PropertyPulse.App.ViewModels"
+    xmlns:converters="clr-namespace:PropertyPulse.App.Converters"
+    xmlns:properties="clr-namespace:PropertyPulse.Shared.Properties;assembly=PropertyPulse.Shared"
+    x:Name="Page"
+    x:DataType="vm:PropertyDetailViewModel"
+    Title="{Binding Title}">
+
+    <ContentPage.Resources>
+        <toolkit:IsStringNotNullOrEmptyConverter x:Key="IsNotEmpty" />
+        <converters:ListNotEmptyConverter x:Key="ListNotEmpty" />
+        <converters:IsNotNullConverter x:Key="IsNotNull" />
+    </ContentPage.Resources>
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding BindingContext, Source={x:Reference Page}, x:DataType={x:Null}}"
+            Command="{Binding AppearingCommand}"
+            EventName="Appearing" />
+    </ContentPage.Behaviors>
+
+    <Grid>
+        <ScrollView IsVisible="{Binding Property, Converter={StaticResource IsNotNull}}">
+            <VerticalStackLayout Style="{StaticResource PagePlaceholderLayout}">
+
+                <CarouselView HeightRequest="240" IsVisible="{Binding Property.Images, Converter={StaticResource ListNotEmpty}}" ItemsSource="{Binding Property.Images}">
+                    <CarouselView.ItemTemplate>
+                        <DataTemplate x:DataType="properties:PropertyImageDto">
+                            <Image Aspect="AspectFill" Source="{Binding Url}" />
+                        </DataTemplate>
+                    </CarouselView.ItemTemplate>
+                </CarouselView>
+                <Image
+                    Aspect="AspectFill"
+                    HeightRequest="240"
+                    IsVisible="{Binding Property.Images, Converter={StaticResource ListNotEmpty}, ConverterParameter=Invert}"
+                    Source="property_placeholder.png" />
+
+                <Label Style="{StaticResource TitleLabel}" Text="{Binding Property.Title}" />
+                <Label Style="{StaticResource HeadingLabel}" Text="{Binding Property.PriceLkr, StringFormat='LKR {0:N0}'}" />
+                <Label Style="{StaticResource BodyLabel}" Text="{Binding Property.Description}" />
+
+                <Label Style="{StaticResource CaptionLabel}" Text="{Binding Property.Address}" />
+                <Label Style="{StaticResource CaptionLabel}" Text="{Binding Property.City}" />
+                <Label Style="{StaticResource CaptionLabel}" Text="{Binding Property.PropertyType}" />
+                <Label Style="{StaticResource CaptionLabel}" Text="{Binding Property.Status}" />
+                <Label Style="{StaticResource CaptionLabel}" Text="{Binding Property.Bedrooms, StringFormat='{0} bedrooms'}" />
+                <Label Style="{StaticResource CaptionLabel}" Text="{Binding Property.Bathrooms, StringFormat='{0} bathrooms'}" />
+                <Label
+                    IsVisible="{Binding Property.FloorAreaSqFt, Converter={StaticResource IsNotNull}}"
+                    Style="{StaticResource CaptionLabel}"
+                    Text="{Binding Property.FloorAreaSqFt, StringFormat='{0} sq ft'}" />
+                <Label
+                    IsVisible="{Binding Property.LandSizePerches, Converter={StaticResource IsNotNull}}"
+                    Style="{StaticResource CaptionLabel}"
+                    Text="{Binding Property.LandSizePerches, StringFormat='{0} perches'}" />
+                <Label
+                    IsVisible="{Binding Property.Latitude, Converter={StaticResource IsNotNull}}"
+                    Style="{StaticResource CaptionLabel}"
+                    Text="{Binding Property.Latitude, StringFormat='Latitude: {0}'}" />
+                <Label
+                    IsVisible="{Binding Property.Longitude, Converter={StaticResource IsNotNull}}"
+                    Style="{StaticResource CaptionLabel}"
+                    Text="{Binding Property.Longitude, StringFormat='Longitude: {0}'}" />
+                <Label Style="{StaticResource CaptionLabel}" Text="{Binding Property.AgentName, StringFormat='Listed by {0}'}" />
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8" IsVisible="{Binding CanEdit}" RowDefinitions="Auto">
+                    <Button Grid.Column="0" Command="{Binding EditCommand}" Text="Edit" />
+                    <Button Grid.Column="1" Command="{Binding DeleteCommand}" Text="Delete" />
+                </Grid>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" VerticalOptions="Center" />
+
+        <VerticalStackLayout
+            IsVisible="{Binding NotFound}"
+            Style="{StaticResource FormLayout}"
+            VerticalOptions="Center">
+            <Label HorizontalTextAlignment="Center" Style="{StaticResource ErrorLabel}" Text="This property is no longer available." />
+        </VerticalStackLayout>
+
+        <VerticalStackLayout
+            IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotEmpty}}"
+            Style="{StaticResource FormLayout}"
+            VerticalOptions="Center">
+            <Label HorizontalTextAlignment="Center" Style="{StaticResource ErrorLabel}" Text="{Binding ErrorMessage}" />
+            <Button Command="{Binding RetryCommand}" Text="Retry" />
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>

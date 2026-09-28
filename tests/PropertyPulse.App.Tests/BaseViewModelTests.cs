@@ -39,7 +39,6 @@ public class BaseViewModelTests
 	}
 
 	[Theory]
-	[InlineData(typeof(PropertiesViewModel), "Properties")]
 	[InlineData(typeof(LeadsViewModel), "Leads")]
 	[InlineData(typeof(VisitsViewModel), "Visits")]
 	[InlineData(typeof(DashboardViewModel), "Dashboard")]

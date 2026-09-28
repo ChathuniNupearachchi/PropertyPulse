@@ -3,12 +3,93 @@
     x:Class="PropertyPulse.App.Views.PropertiesPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:vm="clr-namespace:PropertyPulse.App.ViewModels"
-    x:DataType="vm:PropertiesViewModel"
+    xmlns:controls="clr-namespace:PropertyPulse.App.Controls"
+    xmlns:properties="clr-namespace:PropertyPulse.Shared.Properties;assembly=PropertyPulse.Shared"
+    x:Name="Page"
+    x:DataType="vm:PropertyListViewModel"
     Title="{Binding Title}">
 
-    <VerticalStackLayout Style="{StaticResource PagePlaceholderLayout}">
-        <Label Style="{StaticResource TitleLabel}" Text="{Binding Title}" />
-    </VerticalStackLayout>
+    <ContentPage.Resources>
+        <toolkit:IsStringNotNullOrEmptyConverter x:Key="IsNotEmpty" />
+    </ContentPage.Resources>
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            BindingContext="{Binding BindingContext, Source={x:Reference Page}, x:DataType={x:Null}}"
+            Command="{Binding AppearingCommand}"
+            EventName="Appearing" />
+    </ContentPage.Behaviors>
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Command="{Binding AddPropertyCommand}" Text="Add" />
+    </ContentPage.ToolbarItems>
+
+    <Grid Padding="16" RowDefinitions="Auto,Auto,*" RowSpacing="8">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <Entry
+                Grid.Column="0"
+                Placeholder="Search title, address, or city"
+                ReturnCommand="{Binding SearchCommand}"
+                Text="{Binding SearchText}" />
+            <Button Grid.Column="1" Command="{Binding SearchCommand}" Text="Search" />
+        </Grid>
+
+        <Border Grid.Row="1">
+            <VerticalStackLayout Style="{StaticResource CardContentLayout}">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="8">
+                    <Picker Grid.Row="0" Grid.Column="0" ItemsSource="{Binding PropertyTypeOptions}" SelectedItem="{Binding SelectedType}" Title="Type" />
+                    <Picker Grid.Row="0" Grid.Column="1" ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}" Title="Status" />
+                    <Entry Grid.Row="1" Grid.Column="0" Placeholder="City" Text="{Binding City}" />
+                    <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="*,*" ColumnSpacing="4" RowDefinitions="Auto">
+                        <Entry Grid.Column="0" Keyboard="Numeric" Placeholder="Min LKR" Text="{Binding MinPriceText}" />
+                        <Entry Grid.Column="1" Keyboard="Numeric" Placeholder="Max LKR" Text="{Binding MaxPriceText}" />
+                    </Grid>
+                </Grid>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8" RowDefinitions="Auto">
+                    <Button Grid.Column="0" Command="{Binding ApplyFiltersCommand}" Text="Apply filters" />
+                    <Button Grid.Column="1" Command="{Binding ClearFiltersCommand}" Text="Clear" />
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <Grid Grid.Row="2">
+            <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsRefreshing}">
+                <CollectionView
+                    ItemsSource="{Binding Properties}"
+                    RemainingItemsThreshold="3"
+                    SelectedItem="{Binding SelectedProperty, Mode=TwoWay}"
+                    SelectionMode="Single">
+                    <CollectionView.Behaviors>
+                        <toolkit:EventToCommandBehavior
+                            BindingContext="{Binding BindingContext, Source={x:Reference Page}, x:DataType={x:Null}}"
+                            Command="{Binding LoadMoreCommand}"
+                            EventName="RemainingItemsThresholdReached" />
+                    </CollectionView.Behaviors>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="properties:PropertyDto">
+                            <controls:PropertyCard Margin="0,0,0,12" Property="{Binding .}" />
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.Footer>
+                        <ActivityIndicator IsRunning="{Binding IsLoadingMore}" IsVisible="{Binding IsLoadingMore}" />
+                    </CollectionView.Footer>
+                </CollectionView>
+            </RefreshView>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" VerticalOptions="Center" />
+
+            <VerticalStackLayout
+                IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotEmpty}}"
+                Style="{StaticResource FormLayout}"
+                VerticalOptions="Center">
+                <Label HorizontalTextAlignment="Center" Style="{StaticResource ErrorLabel}" Text="{Binding ErrorMessage}" />
+                <Button Command="{Binding RetryCommand}" Text="Retry" />
+            </VerticalStackLayout>
+        </Grid>
+
+    </Grid>
 
 </ContentPage>

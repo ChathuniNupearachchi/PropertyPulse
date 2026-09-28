@@ -1,4 +1,4 @@
-﻿services:
+services:
   db:
     image: postgres:17
     environment:
@@ -27,8 +27,12 @@
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: Host=db;Port=5432;Database=propertypulse;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:-development-only-signing-key-change-outside-dev}
+      ImageStorage__RootPath: /app/data/property-images
+    volumes:
+      - property-images:/app/data/property-images
     ports:
       - "5000:8080"
 
 volumes:
   postgres-data:
+  property-images:

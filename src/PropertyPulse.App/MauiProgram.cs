@@ -34,14 +34,20 @@ public static class MauiProgram
 		builder.Services.AddSingleton<ISessionService, SessionService>();
 		builder.Services.AddSingleton<IApiClient, ApiClient>();
 		builder.Services.AddSingleton<IAuthService, AuthService>();
+		builder.Services.AddSingleton<IPropertyService, PropertyService>();
 		builder.Services.AddSingleton<INavigationService, ShellNavigationService>();
+		builder.Services.AddSingleton<IMediaPickerService, MediaPickerAdapter>();
+		builder.Services.AddSingleton<ILocationService, LocationAdapter>();
+		builder.Services.AddSingleton<IDialogService, DialogService>();
 
 		builder.Services.AddSingleton<ShellViewModel>();
 		builder.Services.AddSingleton<AppShell>();
 
 		builder.Services.AddTransient<StartupViewModel>();
 		builder.Services.AddTransient<LoginViewModel>();
-		builder.Services.AddTransient<PropertiesViewModel>();
+		builder.Services.AddTransient<PropertyListViewModel>();
+		builder.Services.AddTransient<PropertyDetailViewModel>();
+		builder.Services.AddTransient<PropertyEditViewModel>();
 		builder.Services.AddTransient<LeadsViewModel>();
 		builder.Services.AddTransient<VisitsViewModel>();
 		builder.Services.AddTransient<DashboardViewModel>();
@@ -50,6 +56,8 @@ public static class MauiProgram
 		builder.Services.AddTransient<StartupPage>();
 		builder.Services.AddTransient<LoginPage>();
 		builder.Services.AddTransient<PropertiesPage>();
+		builder.Services.AddTransient<PropertyDetailPage>();
+		builder.Services.AddTransient<PropertyFormPage>();
 		builder.Services.AddTransient<LeadsPage>();
 		builder.Services.AddTransient<VisitsPage>();
 		builder.Services.AddTransient<DashboardPage>();

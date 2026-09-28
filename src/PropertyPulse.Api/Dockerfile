@@ -17,6 +17,10 @@ RUN dotnet publish src/PropertyPulse.Api/PropertyPulse.Api.csproj -c Release -o 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+
+# Owned by the non-root user before the volume is mounted, so a fresh named volume inherits writable permissions.
+RUN mkdir -p /app/data/property-images && chown -R $APP_UID:$APP_UID /app/data
+
 USER $APP_UID
 ENV ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080

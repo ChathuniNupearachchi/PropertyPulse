@@ -3,15 +3,17 @@ using Microsoft.EntityFrameworkCore;
 using PropertyPulse.Domain.Entities;
 using PropertyPulse.Domain.Enums;
 using PropertyPulse.Infrastructure.Data;
+using PropertyPulse.Infrastructure.Storage;
 
 namespace PropertyPulse.Api.Seeding;
 
 /// <summary>
 /// Inserts sample data for local development. Every seeded user shares <see cref="Password"/>.
 /// </summary>
-public class DevelopmentDataSeeder(AppDbContext dbContext, IPasswordHasher<User> passwordHasher)
+public class DevelopmentDataSeeder(AppDbContext dbContext, IPasswordHasher<User> passwordHasher, IPropertyImageStorage imageStorage)
 {
     public const string Password = "Password123!";
+    private static readonly string SeedAssetsPath = Path.Combine(AppContext.BaseDirectory, "SeedAssets");
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
@@ -38,12 +40,7 @@ public class DevelopmentDataSeeder(AppDbContext dbContext, IPasswordHasher<User>
             Bedrooms = 3,
             Bathrooms = 2,
             FloorAreaSqFt = 1650,
-            Agent = kasun,
-            Images =
-            [
-                new PropertyImage { FilePath = "seed/colombo-apartment-1.jpg", SortOrder = 0, IsPrimary = true },
-                new PropertyImage { FilePath = "seed/colombo-apartment-2.jpg", SortOrder = 1 }
-            ]
+            Agent = kasun
         };
 
         var kandyHouse = new Property
@@ -61,8 +58,7 @@ public class DevelopmentDataSeeder(AppDbContext dbContext, IPasswordHasher<User>
             Bathrooms = 3,
             FloorAreaSqFt = 2100,
             LandSizePerches = 15,
-            Agent = kasun,
-            Images = [new PropertyImage { FilePath = "seed/kandy-house-1.jpg", SortOrder = 0, IsPrimary = true }]
+            Agent = kasun
         };
 
         var galleVilla = new Property
@@ -80,8 +76,7 @@ public class DevelopmentDataSeeder(AppDbContext dbContext, IPasswordHasher<User>
             Bathrooms = 4,
             FloorAreaSqFt = 3400,
             LandSizePerches = 25,
-            Agent = dilini,
-            Images = [new PropertyImage { FilePath = "seed/galle-villa-1.jpg", SortOrder = 0, IsPrimary = true }]
+            Agent = dilini
         };
 
         var galleLand = new Property
@@ -114,8 +109,7 @@ public class DevelopmentDataSeeder(AppDbContext dbContext, IPasswordHasher<User>
             Bathrooms = 2,
             FloorAreaSqFt = 1800,
             LandSizePerches = 10,
-            Agent = kasun,
-            Images = [new PropertyImage { FilePath = "seed/negombo-house-1.jpg", SortOrder = 0, IsPrimary = true }]
+            Agent = kasun
         };
 
         var nuwaraEliyaCottage = new Property
@@ -297,7 +291,32 @@ public class DevelopmentDataSeeder(AppDbContext dbContext, IPasswordHasher<User>
         dbContext.Leads.AddRange(sanjaya, priyanka, ruwan, tharushi, fazil, anjali, chamara);
         dbContext.SiteVisits.AddRange(visits);
 
+        await AddPhotoAsync(colomboApartment, "apartment.jpg", cancellationToken);
+        await AddPhotoAsync(colomboApartment, "commercial.jpg", cancellationToken);
+        await AddPhotoAsync(kandyHouse, "house.jpg", cancellationToken);
+        await AddPhotoAsync(galleVilla, "villa.jpg", cancellationToken);
+        await AddPhotoAsync(galleVilla, "house.jpg", cancellationToken);
+        await AddPhotoAsync(negomboHouse, "house.jpg", cancellationToken);
+        await AddPhotoAsync(nuwaraEliyaCottage, "cottage.jpg", cancellationToken);
+        await AddPhotoAsync(colomboShop, "commercial.jpg", cancellationToken);
+        await AddPhotoAsync(kandyApartment, "apartment.jpg", cancellationToken);
+        // galleLand is left without a photo, so the app's placeholder-image behavior has something to show.
+
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task AddPhotoAsync(Property property, string seedAssetFileName, CancellationToken cancellationToken)
+    {
+        await using var source = File.OpenRead(Path.Combine(SeedAssetsPath, seedAssetFileName));
+        var fileName = await imageStorage.SaveAsync(property.Id, source, ".jpg", cancellationToken);
+
+        property.Images.Add(new PropertyImage
+        {
+            PropertyId = property.Id,
+            FilePath = fileName,
+            SortOrder = property.Images.Count,
+            IsPrimary = property.Images.Count == 0
+        });
     }
 
     private User CreateUser(string fullName, string email, UserRole role)

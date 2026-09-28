@@ -84,6 +84,9 @@
 		<MauiXaml Update="Views\LoginPage.xaml" Inflator="XamlC" />
 		<MauiXaml Update="Views\StartupPage.xaml" Inflator="XamlC" />
 		<MauiXaml Update="Views\SettingsPage.xaml" Inflator="XamlC" />
+		<MauiXaml Update="Views\PropertiesPage.xaml" Inflator="XamlC" />
+		<MauiXaml Update="Views\PropertyDetailPage.xaml" Inflator="XamlC" />
+		<MauiXaml Update="Views\PropertyFormPage.xaml" Inflator="XamlC" />
 	</ItemGroup>
 
 	<ItemGroup>
